@@ -25,7 +25,7 @@ func (t *telegramBot) Start(ctx context.Context) {
 }
 
 func (t *telegramBot) RegisterHandlers(stockService stock.IStockService) {
-    stockHandler := handlers.NewStockHandler(stockService)
+    stockHandler := handlers.NewStockHandler(t.logger, stockService)
 
     t.bot.RegisterHandler(bot.HandlerTypeMessageText, "/help", bot.MatchTypeExact, handlers.HelpHandler)
     t.bot.RegisterHandler(bot.HandlerTypeMessageText, "/symbol", bot.MatchTypePrefix, stockHandler.SymbolHandler)

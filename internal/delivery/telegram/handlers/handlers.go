@@ -8,6 +8,7 @@ import (
 	"github.com/Natanel-Ziv/stockTeleBot/internal/services/stock"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"github.com/sirupsen/logrus"
 	"github.com/wcharczuk/go-chart/v2"
 )
 
@@ -26,23 +27,28 @@ func HelpHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 type stockHandler struct {
+	logger *logrus.Logger
 	stockService stock.IStockService
 }
 
-func NewStockHandler(stockService stock.IStockService) *stockHandler {
-	return &stockHandler{stockService: stockService}
+func NewStockHandler(logger *logrus.Logger, stockService stock.IStockService) *stockHandler {
+	return &stockHandler{logger: logger, stockService: stockService}
 }
 
 func (sh *stockHandler) SymbolHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	dataAfterCommand := strings.Split(update.Message.Text, "/symbol ")
-	
-	if len(dataAfterCommand) < 1{
+
+	sh.logger.Infof("dataAfterCommand: %+v", len(dataAfterCommand))
+
+	if len(dataAfterCommand) < 2{
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text: "Symbol is missing! Usage:\n/symbol <symbol>",
 		})
 		return
 	}
+
+	dataAfterCommand = strings.Split(dataAfterCommand[1], " ")
 
 	if len(dataAfterCommand) > 2 {
 		b.SendMessage(ctx, &bot.SendMessageParams{
@@ -52,7 +58,7 @@ func (sh *stockHandler) SymbolHandler(ctx context.Context, b *bot.Bot, update *m
 		return
 	}
 
-	symbol := dataAfterCommand[len(dataAfterCommand)-1]
+	symbol := dataAfterCommand[0]
 	stockData, err := sh.stockService.GetMinMaxGraphForDuration(symbol, "4w")
 	if err != nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
