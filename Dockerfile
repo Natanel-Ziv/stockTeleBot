@@ -16,10 +16,10 @@ COPY . .
 # Build the Go application based on the build argument passed during build time
 ARG APP_NAME
 
-RUN go build -o ${APP_NAME} ./cmd/${APP_NAME}
+RUN CGO_ENABLED=0 GOOS=linux go build -o ${APP_NAME} ./cmd/${APP_NAME}
 
 # Start a new stage from scratch
-FROM debian:buster-slim
+FROM alpine:3.18
 
 ARG APP_NAME
 
